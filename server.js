@@ -6,10 +6,6 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 
-// Ruta de bienvenida o prueba para la raíz
-app.get('/', (req, res) => {
-  res.json({ mensaje: '¡El backend de la tienda de gorras está activo y funcionando!' });
-});
 
 // Importar el mapa de rutas que acabas de crear
 const apiRoutes = require('./routes/api');
@@ -31,6 +27,14 @@ app.use(cookieParser()); // Habilita la lectura de req.cookies para la seguridad
 // ==========================================
 // Todas las rutas de api.js tendrán el prefijo '/api'
 app.use('/api', apiRoutes);
+
+
+
+
+// Ruta de bienvenida o prueba para la raíz
+app.get('/', (req, res) => {
+  res.json({ mensaje: '¡El backend de la tienda de gorras está activo y funcionando!' });
+});
 
 // ==========================================
 // 3. CONEXIÓN A MONGODB E INICIO DEL SERVIDOR
