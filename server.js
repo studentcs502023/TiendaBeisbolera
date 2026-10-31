@@ -7,9 +7,8 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 
-// Importar el mapa de rutas y la ruta del feed corregida (sin la "s")
+// Importar únicamente el enrutador principal api.js (que ya contiene todas las rutas y el feed)
 const apiRoutes = require('./routes/api');
-const feedRoutes = require('./routes/feeds'); // 👈 Corregido aquí (feed en singular)
 
 const app = express();
 
@@ -31,8 +30,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 // ==========================================
 // 3. CONECTAR LAS RUTAS DEL BACKEND
 // ==========================================
+// Todas las rutas de la app (incluyendo /api/feeds/facebook.xml) cuelgan de '/api'
 app.use('/api', apiRoutes);
-app.use('/api', feedRoutes); // 👈 Habilita la ruta: https://tiendabeisbolera.onrender.com/api/facebook
 
 // Ruta de estado para verificar que la API responde
 app.get('/api-status', (req, res) => {
