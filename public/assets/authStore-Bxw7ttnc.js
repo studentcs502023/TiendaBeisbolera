@@ -1,1 +1,0 @@
-import{i as e,n as t}from"./index-0Utj28ro.js";var n=e(`auth`,{state:()=>({usuario:null}),actions:{async validarSesionNavegador(){try{let e=await t.get(`/me`);e.data&&(this.usuario=e.data)}catch{this.usuario=null}}}});export{n as t};
