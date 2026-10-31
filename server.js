@@ -9,7 +9,7 @@ const cookieParser = require('cookie-parser');
 
 // Importar el mapa de rutas y la ruta del feed corregida (sin la "s")
 const apiRoutes = require('./routes/api');
-const feedRoutes = require('./routes/feed'); // 👈 Corregido aquí (feed en singular)
+const feedRoutes = require('./routes/feeds'); // 👈 Corregido aquí (feed en singular)
 
 const app = express();
 
