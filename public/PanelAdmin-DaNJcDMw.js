@@ -1,0 +1,1 @@
+import{f as e,g as t,l as n}from"./index-0Utj28ro.js";var r={class:`p-6`},i={__name:`PanelAdmin`,setup(i){return(i,a)=>(t(),e(`div`,r,[...a[0]||=[n(`h1`,{class:`text-2xl font-bold`},`Panel de Control de Aguamonte`,-1),n(`p`,null,`Bienvenido, Administrador.`,-1)]]))}};export{i as default};
