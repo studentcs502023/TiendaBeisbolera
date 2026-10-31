@@ -26,7 +26,9 @@ app.use(cookieParser()); // Habilita la lectura de req.cookies para la seguridad
 // 2. ARCHIVOS ESTÁTICOS DEL FRONTEND
 // ==========================================
 // 🟢 Indicarle a Express dónde están los archivos estáticos del frontend
-app.use(express.static(path.join(__dirname, 'public')));
+app.get(/^(?!\/api).*/, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
 // ==========================================
 // 3. CONECTAR LAS RUTAS DE LA API
