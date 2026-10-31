@@ -7,9 +7,9 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 
-// Importar el mapa de rutas y la ruta del feed (en singular)
+// Importar el mapa de rutas y la ruta del feed corregida (sin la "s")
 const apiRoutes = require('./routes/api');
-const feedRoutes = require('./routes/feed'); 
+const feedRoutes = require('./routes/feed'); // 👈 Corregido aquí (feed en singular)
 
 const app = express();
 
