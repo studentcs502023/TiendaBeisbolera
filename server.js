@@ -7,8 +7,9 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 
-// Importar el mapa de rutas
+// Importar el mapa de rutas y las rutas de los feeds para Facebook
 const apiRoutes = require('./routes/api');
+const feedRoutes = require('./routes/feeds');
 
 const app = express();
 
@@ -16,25 +17,26 @@ const app = express();
 // 1. CONFIGURACIÓN DE MIDDLEWARES GLOBALES
 // ==========================================
 app.use(cors({
-  origin: ['http://localhost:5175', 'https://tiendabeisbolera.onrender.com'],
+  origin: ['http://localhost:5175', 'https://tiendabeisbolera.onrender.com'], // 👈 Soporta local y producción en Render
   credentials: true
 }));
-app.use(express.json());
-app.use(cookieParser());
+app.use(express.json()); // Permite leer datos en formato JSON desde el frontend
+app.use(cookieParser()); // Habilita la lectura de cookies
 
 // ==========================================
 // 2. ARCHIVOS ESTÁTICOS DEL FRONTEND
 // ==========================================
-// 🟢 Aquí SÍ va el comando para servir los archivos estáticos (JS, CSS, imágenes)
+// Sirve los archivos compilados de Quasar desde la carpeta public
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ==========================================
-// 3. CONECTAR LAS RUTAS DE LA API
+// 3. CONECTAR LAS RUTAS DEL BACKEND
 // ==========================================
-// Todas las rutas de api.js tendrán el prefijo '/api'
+// Todas las rutas principales y el feed XML tendrán el prefijo '/api'
 app.use('/api', apiRoutes);
+app.use('/api', feedRoutes); // 👈 Habilita la ruta: https://tiendabeisbolera.onrender.com/api/facebook
 
-// Ruta de bienvenida o prueba para la API
+// Ruta de estado para verificar que la API responde
 app.get('/api-status', (req, res) => {
   res.json({ mensaje: '¡El backend de la tienda de gorras está activo y funcionando!' });
 });
@@ -42,10 +44,10 @@ app.get('/api-status', (req, res) => {
 // ==========================================
 // 4. RUTA COMODÍN PARA EL FRONTEND (SPA)
 // ==========================================
-// 🟢 Esta va AL FINAL (después de /api) para que Vue/Quasar maneje las rutas del frontend
+// Permite que Vue/Quasar gestione las rutas internas de la web (va al final)
 app.get(/^(?!\/api).*/, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
-})
+});
 
 // ==========================================
 // 5. CONEXIÓN A MONGODB E INICIO DEL SERVIDOR
@@ -54,6 +56,7 @@ mongoose.connect(process.env.MONGO_URI)
   .then(() => {
     console.log('🟢 Conectado exitosamente a MongoDB');
     
+    // Render asigna un puerto dinámico mediante process.env.PORT
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
       console.log(`🚀 Servidor backend corriendo en el puerto ${PORT}`);
