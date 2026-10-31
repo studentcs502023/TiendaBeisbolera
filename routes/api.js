@@ -40,10 +40,14 @@ router.post('/gorras', protegerRuta, soloAdmin, upload.single('imagen'), product
 router.put('/gorras/:id', protegerRuta, soloAdmin, upload.single('imagen'), productoCtrl.editarGorra);
 router.delete('/gorras/:id', protegerRuta, soloAdmin, productoCtrl.eliminarGorra);
 
+router.get('/test', (req, res) => {
+  res.json({ mensaje: '¡Las rutas de api.js se actualizaron con éxito!' });
+});
+
 // ==========================================
 // 4. RUTAS DE INTEGRACIÓN (Meta / Facebook)
 // ==========================================
 // Ruta pública para que Meta Commerce Manager lea el catálogo en XML
-router.get('/feed/facebook.xml', metaFeedCtrl.generarFeedFacebook);
+router.get('/feeds/facebook.xml', metaFeedCtrl.generarFeedFacebook);
 
 module.exports = router;
