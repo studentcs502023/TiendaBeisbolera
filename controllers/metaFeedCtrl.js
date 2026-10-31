@@ -13,7 +13,7 @@ exports.generarFeedFacebook = async (req, res) => {
         '@version': '2.0',
         channel: {
           title: 'Catálogo de Gorras',
-          link: 'https://tudominio.com', // Reemplazarás esto con el dominio real de tu Vue
+          link: 'https://tiendabeisbolera.onrender.com/', // Reemplazarás esto con el dominio real de tu Vue
           description: 'Catálogo oficial de productos para Meta Commerce',
           item: [] // Aquí inyectaremos cada gorra iterando la base de datos
         }
@@ -26,7 +26,7 @@ exports.generarFeedFacebook = async (req, res) => {
         'g:id': gorra._id.toString(),
         'g:title': gorra.nombre,
         'g:description': gorra.descripcion || `Gorra ${gorra.tipo} marca ${gorra.marca} color ${gorra.color}`,
-        'g:link': `https://tudominio.com/producto/${gorra.slug}`, // El enlace a tu Vue
+        'g:link': `https://tiendabeisbolera.onrender.com/producto/${gorra.slug}`, // El enlace a tu Vue
         'g:image_link': gorra.imagen_cloudinary_url,
         'g:brand': gorra.marca,
         'g:condition': 'new', // Siempre nuevo
