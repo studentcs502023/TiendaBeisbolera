@@ -45,7 +45,7 @@ app.get('/api-status', (req, res) => {
 // 🟢 Esta va AL FINAL (después de /api) para que Vue/Quasar maneje las rutas del frontend
 app.get(/^(?!\/api).*/, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
+})
 
 // ==========================================
 // 5. CONEXIÓN A MONGODB E INICIO DEL SERVIDOR
