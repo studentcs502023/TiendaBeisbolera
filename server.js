@@ -7,9 +7,9 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 
-// Importar el mapa de rutas y las rutas de los feeds para Facebook
+// Importar el mapa de rutas y la ruta del feed (en singular)
 const apiRoutes = require('./routes/api');
-const feedRoutes = require('./routes/feeds');
+const feedRoutes = require('./routes/feed'); 
 
 const app = express();
 
@@ -17,22 +17,20 @@ const app = express();
 // 1. CONFIGURACIÓN DE MIDDLEWARES GLOBALES
 // ==========================================
 app.use(cors({
-  origin: ['http://localhost:5175', 'https://tiendabeisbolera.onrender.com'], // 👈 Soporta local y producción en Render
+  origin: ['http://localhost:5175', 'https://tiendabeisbolera.onrender.com'],
   credentials: true
 }));
-app.use(express.json()); // Permite leer datos en formato JSON desde el frontend
-app.use(cookieParser()); // Habilita la lectura de cookies
+app.use(express.json());
+app.use(cookieParser());
 
 // ==========================================
 // 2. ARCHIVOS ESTÁTICOS DEL FRONTEND
 // ==========================================
-// Sirve los archivos compilados de Quasar desde la carpeta public
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ==========================================
 // 3. CONECTAR LAS RUTAS DEL BACKEND
 // ==========================================
-// Todas las rutas principales y el feed XML tendrán el prefijo '/api'
 app.use('/api', apiRoutes);
 app.use('/api', feedRoutes); // 👈 Habilita la ruta: https://tiendabeisbolera.onrender.com/api/facebook
 
@@ -44,7 +42,6 @@ app.get('/api-status', (req, res) => {
 // ==========================================
 // 4. RUTA COMODÍN PARA EL FRONTEND (SPA)
 // ==========================================
-// Permite que Vue/Quasar gestione las rutas internas de la web (va al final)
 app.get(/^(?!\/api).*/, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
@@ -56,7 +53,6 @@ mongoose.connect(process.env.MONGO_URI)
   .then(() => {
     console.log('🟢 Conectado exitosamente a MongoDB');
     
-    // Render asigna un puerto dinámico mediante process.env.PORT
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
       console.log(`🚀 Servidor backend corriendo en el puerto ${PORT}`);
