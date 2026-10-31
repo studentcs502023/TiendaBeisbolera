@@ -6,6 +6,11 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 
+// Ruta de bienvenida o prueba para la raíz
+app.get('/', (req, res) => {
+  res.json({ mensaje: '¡El backend de la tienda de gorras está activo y funcionando!' });
+});
+
 // Importar el mapa de rutas que acabas de crear
 const apiRoutes = require('./routes/api');
 
