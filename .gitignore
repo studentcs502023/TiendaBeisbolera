@@ -10,10 +10,7 @@ jspm_packages/
 .env.production.local
 
 # Archivos temporales de importación o Excel locales
-*.xlsx
-*.xls
-temp/
-uploads/
+
 
 # Logs y registros de errores
 npm-debug.log*
