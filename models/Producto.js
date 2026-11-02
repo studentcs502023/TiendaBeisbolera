@@ -7,21 +7,21 @@ const productoSchema = new mongoose.Schema({
     trim: true,
     maxlength: [150, 'El nombre no puede exceder los 150 caracteres']
   },
- slug: {
-  type: String,
-  required: false, // 👈 Cambiar a false para que no sea estrictamente requerido por validación manual
-  unique: true,
-  lowercase: true,
-  trim: true
-},
+  slug: {
+    type: String,
+    required: false,
+    unique: false, // 👈 Nos aseguramos de que no sea único
+    lowercase: true,
+    trim: true
+  },
   marca: {
     type: String,
     required: [true, 'La marca es obligatoria'],
-    index: true // Acelera las búsquedas por marca en la base de datos
+    index: true 
   },
   tipo: {
     type: String,
-    required: [true, 'El tipo de gorra es obligatorio (ej. Plana, Trucker)'],
+    required: [false, 'El tipo de gorra es opcional'],
     index: true
   },
   color: {
@@ -51,16 +51,14 @@ const productoSchema = new mongoose.Schema({
     type: String,
     enum: ['activo', 'inactivo'],
     default: 'activo',
-    index: true // Ayuda a filtrar rápido solo las gorras activas para el catálogo
+    index: true 
   }
 }, {
-  // Configuración extra de Mongoose
-  timestamps: true, // Crea automáticamente los campos 'createdAt' y 'updatedAt'
-  versionKey: false // Evita que Mongoose agregue el campo oculto '__v' al JSON
+  timestamps: true,
+  versionKey: false 
 });
 
-
-// Quita el parámetro 'next' y usa async/await de forma limpia
+// Generar slug automáticamente si no viene definido
 productoSchema.pre('save', async function() {
   if (!this.slug && this.nombre) {
     this.slug = this.nombre
@@ -69,5 +67,5 @@ productoSchema.pre('save', async function() {
       .replace(/(^-|-$)+/g, '');
   }
 });
-// Exportamos el modelo para usarlo en los controladores
+
 module.exports = mongoose.model('Producto', productoSchema);
