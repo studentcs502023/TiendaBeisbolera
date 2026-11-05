@@ -16,7 +16,12 @@ const app = express();
 // 1. CONFIGURACIÓN DE MIDDLEWARES GLOBALES
 // ==========================================
 app.use(cors({
-  origin: ['http://localhost:5175', 'https://tiendabeisbolera.onrender.com'],
+  origin: [
+'http://localhost:5175',
+ 'https://tiendabeisbolera.onrender.com',
+'https://tiendabeisbolera.com',
+'https://tiendabeisbolera.com'
+],
   credentials: true
 }));
 app.use(express.json());
