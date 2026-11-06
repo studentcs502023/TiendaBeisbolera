@@ -1,0 +1,1 @@
+import{c as e,d as t,h as n}from"./index-Dz22TrPI.js";var r={class:`p-6`},i={__name:`PanelAdmin`,setup(i){return(i,a)=>(n(),t(`div`,r,[...a[0]||=[e(`h1`,{class:`text-2xl font-bold`},`Panel de Control de Aguamonte`,-1),e(`p`,null,`Bienvenido, Administrador.`,-1)]]))}};export{i as default};
