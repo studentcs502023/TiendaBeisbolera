@@ -1,0 +1,1 @@
+import{A as e,c as t,d as n}from"./runtime-core.esm-bundler-Bsv64Gsp.js";var r={class:`p-6`},i={__name:`PanelAdmin`,setup(i){return(i,a)=>(e(),n(`div`,r,[...a[0]||=[t(`h1`,{class:`text-2xl font-bold`},`Panel de Control de Aguamonte`,-1),t(`p`,null,`Bienvenido, Administrador.`,-1)]]))}};export{i as default};
