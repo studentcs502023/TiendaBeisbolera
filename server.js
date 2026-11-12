@@ -24,7 +24,7 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Permitir peticiones sin origen (como Postman o Apps móviles)
+    // Permitir peticiones sin origen (como Postman, UptimeRobot o Apps móviles)
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
@@ -38,7 +38,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 // ==========================================
-// 2. ARCHIVOS ESTÁTICOS DEL FRONTEND
+// 2. ARCHIVOS ESTÁTICOS (TUS 2 IMÁGENES EN PUBLIC)
 // ==========================================
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -48,16 +48,21 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Todas las rutas de la app (incluyendo /api/feeds/facebook.xml) cuelgan de '/api'
 app.use('/api', apiRoutes);
 
-// Ruta de estado para verificar que la API responde
+// Ruta de estado para verificar que la API responde (ideal para el monitor)
 app.get('/api-status', (req, res) => {
-  res.json({ mensaje: '¡El backend de la tienda de gorras está activo y funcionando!' });
+  res.status(200).json({ mensaje: '¡El backend de la tienda de gorras está activo y funcionando!' });
 });
 
 // ==========================================
-// 4. RUTA COMODÍN PARA EL FRONTEND (SPA)
+// 4. RUTA RAÍZ Y MANEJO DE RUTAS NO ENCONTRADAS
 // ==========================================
-app.get(/^(?!\/api).*/, (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+// Responde JSON limpio en lugar de buscar un index.html inexistente
+app.get('/', (req, res) => {
+  res.status(200).json({ 
+    ok: true, 
+    servicio: 'API Tienda Beisbolera',
+    frontend: 'https://tiendabeisbolera.com'
+  });
 });
 
 // ==========================================
