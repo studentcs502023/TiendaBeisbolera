@@ -9,7 +9,9 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-// Función auxiliar para extraer el ID de la imagen en Cloudinary
+const CAMPOS_EDITABLES = ['nombre', 'marca', 'tipo', 'color', 'descripcion', 'precio', 'stock', 'estado', 'es_diseno'];
+
+// Extrae "carpeta/id" de una URL de Cloudinary para poder borrar la imagen de forma segura
 const extraerIdCloudinary = (url) => {
   const partes = url.split('/');
   const nombreArchivo = partes.pop();
@@ -18,54 +20,90 @@ const extraerIdCloudinary = (url) => {
   return `${carpeta}/${idSinExtension}`;
 };
 
-// ==========================================
-// 1. CREAR GORRA (Protegido)
-// ==========================================
+// Función auxiliar para subir a Cloudinary mediante streaming
+const subirACloudinary = (buffer) =>
+  new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      { folder: 'catalogo_gorras' },
+      (error, result) => (result ? resolve(result) : reject(error))
+    );
+    streamifier.createReadStream(buffer).pipe(stream);
+  });
 
-// Ejemplo dentro de tu función crearGorra:
+// Generar slug único para SEO / URLs amigables
+const generarSlugUnico = async (nombre) => {
+  const base =
+    nombre
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)+/g, '') || 'gorra';
+
+  let slug = base;
+  let n = 1;
+  while (await Producto.exists({ slug })) {
+    n += 1;
+    slug = `${base}-${n}`;
+  }
+  return slug;
+};
+
+// Manejador centralizado de errores de validación de Mongoose
+const responderError = (res, error, mensajeGenerico) => {
+  if (error.name === 'ValidationError') {
+    const detalle = Object.values(error.errors).map((e) => e.message).join('. ');
+    return res.status(400).json({ mensaje: detalle });
+  }
+  console.error(mensajeGenerico, error);
+  return res.status(500).json({ mensaje: mensajeGenerico });
+};
+
+// ==========================================
+// 1. CREAR GORRA O DISEÑO (Protegido)
+// ==========================================
 exports.crearGorra = async (req, res) => {
+  let resultado;
   try {
-    let imagenUrl = '';
-
-    // Si el usuario subió una imagen con multer
-    if (req.file) {
-      const uploadPromise = new Promise((resolve, reject) => {
-        const stream = cloudinary.uploader.upload_stream(
-          { folder: 'gorras_catalogo' },
-          (error, result) => {
-            if (result) resolve(result);
-            else reject(error);
-          }
-        );
-        stream.end(req.file.buffer);
-      });
-
-      const resultadoCloudinary = await uploadPromise;
-      imagenUrl = resultadoCloudinary.secure_url;
+    if (!req.file) {
+      return res.status(400).json({ mensaje: 'Debes subir una imagen para la gorra o diseño' });
+    }
+    if (!req.body.nombre) {
+      return res.status(400).json({ mensaje: 'El nombre es obligatorio' });
     }
 
-    // Guardar en la base de datos junto con el campo de la URL de Cloudinary
+    resultado = await subirACloudinary(req.file.buffer);
+
     const nuevaGorra = new Producto({
-      ...req.body,
-      imagen_cloudinary_url: imagenUrl
+      nombre: req.body.nombre,
+      slug: await generarSlugUnico(req.body.nombre),
+      marca: req.body.marca,
+      tipo: req.body.tipo,
+      color: req.body.color,
+      descripcion: req.body.descripcion,
+      precio: req.body.precio || 0,
+      stock: req.body.stock !== undefined ? req.body.stock : 1,
+      estado: req.body.estado || 'activo',
+      imagen_cloudinary_url: resultado.secure_url,
+      es_diseno: req.body.es_diseno === 'true' || req.body.es_diseno === true
     });
 
     await nuevaGorra.save();
-    res.status(201).json({ mensaje: 'Gorra creada con éxito', gorra: nuevaGorra });
 
+    res.status(201).json({ mensaje: 'Creado exitosamente', producto: nuevaGorra });
   } catch (error) {
-    console.error('Error al crear gorra:', error);
-    res.status(500).json({ mensaje: 'Error al procesar la imagen o guardar el producto' });
+    if (resultado) await cloudinary.uploader.destroy(resultado.public_id).catch(() => {});
+    responderError(res, error, 'Error interno del servidor al crear el producto');
   }
 };
 
 // ==========================================
-// 2. OBTENER TODAS LAS GORRAS (Público)
+// 2a. OBTENER GORRAS ACTIVAS (Público: Tienda)
 // ==========================================
 exports.obtenerGorras = async (req, res) => {
   try {
-    // Retorna todos los productos ordenados del más nuevo al más antiguo
-    const gorras = await Producto.find().sort({ createdAt: -1 });
+    // Excluye los diseños y solo trae productos activos
+    const gorras = await Producto.find({ estado: 'activo', es_diseno: { $ne: true } }).sort({ createdAt: -1 });
     res.json(gorras);
   } catch (error) {
     console.error('Error al obtener gorras:', error);
@@ -74,78 +112,92 @@ exports.obtenerGorras = async (req, res) => {
 };
 
 // ==========================================
-// 3. EDITAR GORRA (Protegido)
+// 2b. OBTENER TODAS LAS GORRAS (Protegido: Admin)
 // ==========================================
-exports.editarGorra = async (req, res) => {
+exports.obtenerGorrasAdmin = async (req, res) => {
   try {
-    const idProducto = req.params.id;
-    let producto = await Producto.findById(idProducto);
-
-    if (!producto) {
-      return res.status(404).json({ mensaje: 'Gorra no encontrada' });
-    }
-
-    let nuevaUrlImagen = producto.imagen_cloudinary_url;
-
-    if (req.file) {
-      const idViejo = extraerIdCloudinary(producto.imagen_cloudinary_url);
-      await cloudinary.uploader.destroy(idViejo);
-
-      const subirACloudinary = (buffer) => {
-        return new Promise((resolve, reject) => {
-          const stream = cloudinary.uploader.upload_stream(
-            { folder: 'catalogo_gorras' },
-            (error, result) => {
-              if (result) resolve(result);
-              else reject(error);
-            }
-          );
-          streamifier.createReadStream(buffer).pipe(stream);
-        });
-      };
-      
-      const resultado = await subirACloudinary(req.file.buffer);
-      nuevaUrlImagen = resultado.secure_url;
-    }
-
-    producto.nombre = req.body.nombre || producto.nombre;
-    producto.marca = req.body.marca || producto.marca;
-    producto.tipo = req.body.tipo || producto.tipo;
-    producto.color = req.body.color || producto.color;
-    producto.precio = req.body.precio || producto.precio;
-    producto.stock = req.body.stock || producto.stock;
-    producto.estado = req.body.estado || producto.estado;
-    producto.imagen_cloudinary_url = nuevaUrlImagen;
-
-    await producto.save();
-
-    res.json({ mensaje: 'Gorra actualizada correctamente', producto });
+    const gorras = await Producto.find({ es_diseno: { $ne: true } }).sort({ createdAt: -1 });
+    res.json(gorras);
   } catch (error) {
-    console.error('Error al editar:', error);
-    res.status(500).json({ mensaje: 'Error al actualizar la gorra' });
+    console.error('Error al obtener gorras (admin):', error);
+    res.status(500).json({ mensaje: 'Error al listar los productos' });
   }
 };
 
 // ==========================================
-// 4. ELIMINAR GORRA (Protegido)
+// 2c. OBTENER DISEÑOS (Protegido: Admin) -> Soluciona el 404
+// ==========================================
+exports.obtenerDisenos = async (req, res) => {
+  try {
+    const disenos = await Producto.find({ es_diseno: true }).sort({ createdAt: -1 });
+    res.json(disenos);
+  } catch (error) {
+    console.error('Error al obtener diseños:', error);
+    res.status(500).json({ mensaje: 'Error al listar los diseños' });
+  }
+};
+
+// ==========================================
+// 3. EDITAR GORRA / DISEÑO (Protegido)
+// ==========================================
+exports.editarGorra = async (req, res) => {
+  let nueva;
+  try {
+    const producto = await Producto.findById(req.params.id);
+    if (!producto) {
+      return res.status(404).json({ mensaje: 'Producto no encontrado' });
+    }
+
+    // Actualiza dinámicamente los campos permitidos permitiendo valores en 0 o booleanos
+    CAMPOS_EDITABLES.forEach((campo) => {
+      if (req.body[campo] !== undefined) {
+        if (campo === 'es_diseno') {
+          producto[campo] = req.body[campo] === 'true' || req.body[campo] === true;
+        } else {
+          producto[campo] = req.body[campo];
+        }
+      }
+    });
+
+    const urlAnterior = producto.imagen_cloudinary_url;
+    if (req.file) {
+      nueva = await subirACloudinary(req.file.buffer);
+      producto.imagen_cloudinary_url = nueva.secure_url;
+    }
+
+    await producto.save();
+
+    // Borra la imagen vieja de Cloudinary solo si el guardado fue exitoso y se subió una nueva
+    if (req.file && urlAnterior) {
+      await cloudinary.uploader.destroy(extraerIdCloudinary(urlAnterior)).catch(() => {});
+    }
+
+    res.json({ mensaje: 'Actualizado correctamente', producto });
+  } catch (error) {
+    if (nueva) await cloudinary.uploader.destroy(nueva.public_id).catch(() => {});
+    responderError(res, error, 'Error al actualizar el producto');
+  }
+};
+
+// ==========================================
+// 4. ELIMINAR GORRA / DISEÑO (Protegido)
 // ==========================================
 exports.eliminarGorra = async (req, res) => {
   try {
-    const idProducto = req.params.id;
-    const producto = await Producto.findById(idProducto);
-
+    const producto = await Producto.findById(req.params.id);
     if (!producto) {
-      return res.status(404).json({ mensaje: 'Gorra no encontrada' });
+      return res.status(404).json({ mensaje: 'Producto no encontrado' });
     }
 
-    const idCloudinary = extraerIdCloudinary(producto.imagen_cloudinary_url);
-    await cloudinary.uploader.destroy(idCloudinary);
+    if (producto.imagen_cloudinary_url) {
+      await cloudinary.uploader.destroy(extraerIdCloudinary(producto.imagen_cloudinary_url)).catch(() => {});
+    }
+    
+    await Producto.findByIdAndDelete(req.params.id);
 
-    await Producto.findByIdAndDelete(idProducto);
-
-    res.json({ mensaje: 'Gorra eliminada del catálogo y de la nube' });
+    res.json({ mensaje: 'Eliminado del catálogo y de la nube' });
   } catch (error) {
     console.error('Error al eliminar:', error);
-    res.status(500).json({ mensaje: 'Error al eliminar la gorra' });
+    res.status(500).json({ mensaje: 'Error al eliminar el producto' });
   }
 };

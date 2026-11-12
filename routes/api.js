@@ -40,6 +40,10 @@ router.post('/gorras', protegerRuta, soloAdmin, upload.single('imagen'), product
 router.put('/gorras/:id', protegerRuta, soloAdmin, upload.single('imagen'), productoCtrl.editarGorra);
 router.delete('/gorras/:id', protegerRuta, soloAdmin, productoCtrl.eliminarGorra);
 
+
+// Rutas de Diseños (Admin)
+router.get('/gorras/disenos', protegerRuta, soloAdmin, productoCtrl.obtenerDisenos);
+
 router.get('/test', (req, res) => {
   res.json({ mensaje: '¡Las rutas de api.js se actualizaron con éxito!' });
 });

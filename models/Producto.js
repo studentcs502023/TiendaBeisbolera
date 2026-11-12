@@ -3,69 +3,57 @@ const mongoose = require('mongoose');
 const productoSchema = new mongoose.Schema({
   nombre: {
     type: String,
-    required: [true, 'El nombre de la gorra es obligatorio'],
-    trim: true,
-    maxlength: [150, 'El nombre no puede exceder los 150 caracteres']
+    required: [true, 'El nombre es obligatorio'],
+    trim: true
   },
   slug: {
     type: String,
-    required: false,
-    unique: false, // 👈 Nos aseguramos de que no sea único
-    lowercase: true,
-    trim: true
+    required: true,
+    unique: true
   },
   marca: {
     type: String,
-    required: [true, 'La marca es obligatoria'],
-    index: true 
+    default: 'Genérica'
   },
   tipo: {
     type: String,
-    required: [false, 'El tipo de gorra es opcional'],
-    index: true
+    default: 'Plana'
   },
   color: {
     type: String,
-    required: [true, 'El color principal es obligatorio'],
-    index: true
+    default: 'Único'
   },
   descripcion: {
     type: String,
-    trim: true
+    default: ''
   },
   precio: {
     type: Number,
     required: [true, 'El precio es obligatorio'],
-    min: [0, 'El precio no puede ser negativo']
+    min: 0
   },
   stock: {
     type: Number,
-    default: 1,
-    min: [0, 'El stock no puede ser negativo']
-  },
-  imagen_cloudinary_url: {
-    type: String,
-    required: [true, 'La URL de la imagen de Cloudinary es obligatoria']
+    required: [true, 'El stock es obligatorio'],
+    min: 0,
+    default: 1
   },
   estado: {
     type: String,
     enum: ['activo', 'inactivo'],
-    default: 'activo',
-    index: true 
+    default: 'activo'
+  },
+  imagen_cloudinary_url: {
+    type: String,
+    required: [true, 'La imagen es obligatoria']
+  },
+  // 👈 AQUÍ AGREGAMOS EL CAMPO es_diseno
+  es_diseno: {
+    type: Boolean,
+    default: false
   }
 }, {
-  timestamps: true,
-  versionKey: false 
-});
-
-// Generar slug automáticamente si no viene definido
-productoSchema.pre('save', async function() {
-  if (!this.slug && this.nombre) {
-    this.slug = this.nombre
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)+/g, '');
-  }
+  timestamps: true // Crea automáticamente createdAt y updatedAt
 });
 
 module.exports = mongoose.model('Producto', productoSchema);
