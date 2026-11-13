@@ -18,7 +18,7 @@ const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:5175',
   'https://gorrastienda.tiendabeisbolera.com',
-  'https://tiendabeisbolera.onrender.com'
+  'https://tiendabeisboleraestilo.onrender.com'
 ];
 
 app.use(cors({
@@ -58,7 +58,7 @@ app.get('/', (req, res) => {
   res.status(200).json({
     ok: true,
     servicio: 'API Tienda Beisbolera',
-    frontend: 'https://gorrastienda.tiendabeisbolera.com'
+    frontend: 'https://tiendabeisboleraestilo.onrender.com'
   });
 });
 
