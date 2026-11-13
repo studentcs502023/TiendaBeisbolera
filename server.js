@@ -15,19 +15,24 @@ const app = express();
 // ==========================================
 // 1. CONFIGURACIÓN DE MIDDLEWARES GLOBALES
 // ==========================================
+// ==========================================
+// 1. CONFIGURACIÓN DE MIDDLEWARES GLOBALES
+// ==========================================
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:5175',
   'https://tiendabeisbolera.com',
-  'https://www.tiendabeisbolera.com'
+  'https://www.tiendabeisbolera.com',
+  'https://tiendabeisbolera.onrender.com'
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Permitir peticiones sin origen (como Postman, UptimeRobot o Apps móviles)
-    if (!origin || allowedOrigins.includes(origin)) {
+    // Permitir peticiones sin origen, orígenes en la lista o cualquier subdominio de Render
+    if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.onrender.com')) {
       callback(null, true);
     } else {
+      console.log('Origen bloqueado por CORS:', origin);
       callback(new Error('No permitido por CORS'));
     }
   },
