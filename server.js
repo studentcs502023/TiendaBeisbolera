@@ -17,8 +17,7 @@ const app = express();
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:5175',
-  'https://tiendabeisbolera.com',
-  'https://www.tiendabeisbolera.com',
+  'https://gorrastienda.tiendabeisbolera.com',
   'https://tiendabeisbolera.onrender.com'
 ];
 
@@ -47,19 +46,20 @@ app.get('/api-status', (req, res) => {
 });
 
 // ==========================================
-// 3. ARCHIVOS ESTÁTICOS (FRONTEND COMPILADO EN PUBLIC)
+// 3. ARCHIVOS ESTÁTICOS (IMÁGENES EN PUBLIC)
 // ==========================================
 const publicPath = path.join(__dirname, 'public');
 app.use(express.static(publicPath));
 
 // ==========================================
-// 4. FALLBACK SPA PARA VUE ROUTER (EXPRESS 5)
+// 4. RUTA RAÍZ DEL BACKEND (SIN INDEX.HTML)
 // ==========================================
-app.get(/.*/, (req, res) => {
-  if (req.path.startsWith('/api/') || req.path.startsWith('/assets/')) {
-    return res.status(404).json({ error: 'Ruta o archivo no encontrado' });
-  }
-  res.sendFile(path.join(publicPath, 'index.html'));
+app.get('/', (req, res) => {
+  res.status(200).json({
+    ok: true,
+    servicio: 'API Tienda Beisbolera',
+    frontend: 'https://gorrastienda.tiendabeisbolera.com'
+  });
 });
 
 // ==========================================
